@@ -1,0 +1,510 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>CHAIN GOLD BOT EA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="content.js"></script>
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0f0d09;
+    --panel-2: #16130c;
+    --line: rgba(245, 190, 30, 0.22);
+    --line-strong: rgba(245, 190, 30, 0.55);
+    --gold: #f5be1e;
+    --gold-light: #ffe896;
+    --gold-dark: #a8740c;
+    --text: #efe8d6;
+    --muted: #a39a85;
+    --danger: #ff8a6b;
+    --radius: 16px;
+    --gold-gradient: linear-gradient(180deg, #fff2b0 0%, #f5be1e 48%, #e0a516 56%, #a8740c 100%);
+    --font-display: "Rajdhani", "Bahnschrift", "Segoe UI", system-ui, sans-serif;
+    --font-body: "Inter", system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); }
+  body {
+    font: 15px/1.5 var(--font-body);
+    min-height: 100vh;
+    background:
+      radial-gradient(120% 60% at 50% -10%, rgba(245, 190, 30, 0.16), transparent 60%),
+      var(--bg);
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    -webkit-tap-highlight-color: transparent;
+  }
+  button { font: inherit; color: inherit; }
+
+  /* ---------- шапка ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 5;
+    display: flex; align-items: center; gap: 10px;
+    padding: 10px 16px;
+    background: rgba(5, 5, 5, 0.86);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--line);
+  }
+  .topbar img { width: 34px; height: 34px; border-radius: 50%; border: 1px solid var(--line-strong); }
+  .brand { font: 700 17px/1 var(--font-display); letter-spacing: 0.06em; flex: 1; min-width: 0;
+           white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .gold-text { background: var(--gold-gradient); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .langs { display: flex; gap: 4px; }
+  .langs button {
+    border: 1px solid var(--line); background: transparent; border-radius: 8px;
+    padding: 4px 7px; font: 600 12px/1 var(--font-display); letter-spacing: 0.05em; color: var(--muted); cursor: pointer;
+  }
+  .langs button[aria-pressed="true"] { color: #1a1204; background: var(--gold-gradient); border-color: transparent; }
+
+  main { max-width: 560px; margin: 0 auto; padding: 0 16px; }
+  section[hidden] { display: none; }
+
+  /* ---------- главная ---------- */
+  .hero { text-align: center; padding: 28px 0 8px; }
+  .emblem {
+    width: 190px; height: 190px; border-radius: 50%; display: block; margin: 0 auto 18px;
+    border: 1px solid var(--line-strong);
+    box-shadow: 0 0 0 6px rgba(245, 190, 30, 0.06), 0 0 60px rgba(245, 190, 30, 0.28);
+    animation: glow 4s ease-in-out infinite;
+  }
+  @keyframes glow {
+    50% { box-shadow: 0 0 0 6px rgba(245, 190, 30, 0.09), 0 0 80px rgba(245, 190, 30, 0.42); }
+  }
+  @media (prefers-reduced-motion: reduce) { .emblem { animation: none; } }
+  .hero h1 { margin: 0; font: 700 32px/1.05 var(--font-display); letter-spacing: 0.04em; }
+  .kicker { margin: 8px 0 0; font: 600 13px/1.2 var(--font-display); letter-spacing: 0.28em; color: var(--gold); text-transform: uppercase; }
+  .chips { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 18px 0 4px; }
+  .chip { border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; font: 600 13px/1.2 var(--font-display);
+          letter-spacing: 0.04em; color: var(--gold-light); background: rgba(245, 190, 30, 0.05); }
+  .lead { color: var(--muted); margin: 16px 0 0; white-space: pre-line; }
+  .actions { display: grid; gap: 10px; margin: 22px 0 6px; }
+
+  .btn {
+    display: block; width: 100%; padding: 14px 16px; border-radius: 14px; cursor: pointer;
+    font: 700 16px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; text-align: center;
+    border: 1px solid var(--line-strong); background: transparent; color: var(--gold-light);
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .btn:active { transform: scale(0.98); }
+  .btn-gold { background: var(--gold-gradient); color: #1a1204; border-color: transparent;
+              box-shadow: 0 6px 24px rgba(245, 190, 30, 0.25); }
+  .btn:disabled { filter: grayscale(0.7) brightness(0.6); cursor: default; }
+
+  /* ---------- карточки ---------- */
+  .section-title { display: flex; align-items: center; gap: 10px; margin: 26px 0 12px;
+                   font: 700 20px/1.1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; }
+  .section-title::after { content: ""; flex: 1; height: 1px; background: linear-gradient(90deg, var(--line-strong), transparent); }
+  .card {
+    background: linear-gradient(180deg, var(--panel-2), var(--panel));
+    border: 1px solid var(--line); border-radius: var(--radius); padding: 16px; margin-bottom: 12px;
+  }
+  .prose { white-space: pre-line; overflow-wrap: anywhere; }
+  .list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; }
+  .list li { display: grid; grid-template-columns: 22px 1fr; gap: 8px; align-items: start; }
+  .list li::before { content: "◆"; color: var(--gold); font-size: 12px; line-height: 22px; text-align: center; }
+  .steps { counter-reset: step; }
+  .steps li::before { counter-increment: step; content: counter(step); font: 700 13px/22px var(--font-display);
+                      color: #1a1204; background: var(--gold-gradient); border-radius: 50%; width: 22px; height: 22px; }
+  .note { color: var(--muted); font-size: 13px; }
+
+  .tariff { text-align: center; padding: 22px 16px; border-color: var(--line-strong); position: relative; overflow: hidden; }
+  .tariff::before { content: ""; position: absolute; inset: 0; background: radial-gradient(80% 60% at 50% 0%, rgba(245, 190, 30, 0.14), transparent 70%); pointer-events: none; }
+  .tariff h3 { margin: 0; font: 700 18px/1.2 var(--font-display); letter-spacing: 0.06em; text-transform: uppercase; color: var(--gold-light); }
+  .price { margin: 10px 0 6px; font: 700 46px/1 var(--font-display); letter-spacing: 0.02em; }
+  .price small { font-size: 22px; margin-left: 4px; }
+  .tariff p { margin: 0; color: var(--muted); }
+
+  .wallet { display: grid; gap: 8px; }
+  .wallet-label { font: 700 13px/1 var(--font-display); letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
+  .wallet-row { display: flex; gap: 8px; align-items: center; }
+  .wallet code { flex: 1; min-width: 0; overflow-wrap: anywhere; font: 500 13px/1.35 ui-monospace, "Cascadia Mono", Consolas, monospace;
+                 background: rgba(0, 0, 0, 0.45); border: 1px solid var(--line); border-radius: 10px; padding: 9px 10px; color: var(--text); }
+  .copy { flex: none; border: 1px solid var(--line-strong); background: transparent; color: var(--gold-light); border-radius: 10px;
+          padding: 9px 12px; font: 700 12px/1 var(--font-display); letter-spacing: 0.08em; text-transform: uppercase; cursor: pointer; }
+  .copy.done { background: var(--gold-gradient); color: #1a1204; border-color: transparent; }
+
+  details.faq { border: 1px solid var(--line); border-radius: 14px; background: var(--panel); margin-bottom: 10px; overflow: hidden; }
+  details.faq summary { list-style: none; cursor: pointer; padding: 14px 44px 14px 16px; position: relative; font-weight: 600; }
+  details.faq summary::-webkit-details-marker { display: none; }
+  details.faq summary::after { content: "+"; position: absolute; right: 16px; top: 50%; transform: translateY(-50%);
+                               font: 700 22px/1 var(--font-display); color: var(--gold); transition: transform 0.2s ease; }
+  details.faq[open] summary::after { transform: translateY(-50%) rotate(45deg); }
+  details.faq div { padding: 0 16px 16px; color: var(--muted); white-space: pre-line; }
+
+  /* ---------- форма ---------- */
+  .field { display: grid; gap: 6px; margin-bottom: 14px; }
+  .field label { font: 600 13px/1 var(--font-display); letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); }
+  .field input, .field select {
+    width: 100%; padding: 13px 14px; border-radius: 12px; border: 1px solid var(--line);
+    background: rgba(0, 0, 0, 0.5); color: var(--text); font: 16px/1.2 var(--font-body); outline: none;
+  }
+  .field input:focus, .field select:focus { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(245, 190, 30, 0.15); }
+  .field .hint { font-size: 12px; color: var(--muted); }
+  .field .error { font-size: 13px; color: var(--danger); min-height: 0; }
+  .consent { display: grid; grid-template-columns: 24px 1fr; gap: 10px; align-items: start; margin: 4px 0 8px; cursor: pointer; }
+  .consent input { width: 20px; height: 20px; margin: 2px 0 0; accent-color: var(--gold); }
+  .privacy-text { font-size: 13px; color: var(--muted); white-space: pre-line; margin: 0 0 14px; }
+  .linkish { background: none; border: 0; padding: 0; color: var(--gold-light); text-decoration: underline; cursor: pointer; font-size: 13px; }
+  .success { text-align: center; padding: 30px 16px; }
+  .success .big { font-size: 48px; }
+
+  .risk { margin: 22px 0 8px; padding: 12px 14px; border-left: 2px solid var(--gold); background: rgba(245, 190, 30, 0.05);
+          border-radius: 0 12px 12px 0; font-size: 12.5px; color: var(--muted); white-space: pre-line; }
+
+  /* ---------- нижняя навигация ---------- */
+  nav.tabs {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 5;
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    padding: 6px 6px calc(6px + env(safe-area-inset-bottom));
+    background: rgba(8, 7, 5, 0.94); backdrop-filter: blur(12px); border-top: 1px solid var(--line);
+  }
+  nav.tabs button { border: 0; background: transparent; padding: 6px 2px; cursor: pointer; color: var(--muted);
+                    display: grid; justify-items: center; gap: 3px; font: 600 11px/1.1 var(--font-display); letter-spacing: 0.04em; }
+  nav.tabs button span.icon { font-size: 19px; line-height: 1; filter: grayscale(1) brightness(1.4); }
+  nav.tabs button[aria-current="page"] { color: var(--gold-light); }
+  nav.tabs button[aria-current="page"] span.icon { filter: none; }
+</style>
+</head>
+<body>
+<header class="topbar">
+  <img src="logo.jpg" alt="">
+  <div class="brand gold-text" id="brand">CHAIN GOLD BOT EA</div>
+  <div class="langs" id="langs" role="group" aria-label="Language"></div>
+</header>
+
+<main>
+  <section id="home"></section>
+  <section id="about" hidden></section>
+  <section id="price" hidden></section>
+  <section id="faq" hidden></section>
+  <section id="order" hidden></section>
+</main>
+
+<nav class="tabs" id="tabs"></nav>
+
+<script>
+(() => {
+  "use strict";
+
+  const C = window.CGB_CONTENT;
+  const tg = window.Telegram && window.Telegram.WebApp;
+  const LANGS = ["ru", "en", "it", "de"];
+
+  // ---------- фразы интерфейса ----------
+  const UI = {
+    ru: {
+      nav: ["Главная", "О продукте", "Цена", "FAQ", "Заявка"],
+      kicker: "Expert Advisor · MetaTrader 5", cta_order: "Оставить заявку", cta_price: "Цена и оплата",
+      about: "О продукте", features: "Возможности", start: "Как начать", price: "Цена", payment: "Оплата",
+      copy: "Копировать", copied: "Скопировано", how: "Как это работает",
+      how_text: "Вы оставляете заявку → получаете инструкцию по оплате → администратор проверяет платёж и подтверждает заявку.",
+      faq: "Частые вопросы", order: "Заявка", support: "Поддержка", support_btn: "Написать в поддержку",
+      f_tariff: "Тариф", f_name: "Имя", f_contact: "Контакт", f_contact_hint: "@username в Telegram, e-mail или телефон",
+      f_consent: "Согласен на обработку данных", f_privacy: "Условия обработки данных", f_submit: "Отправить заявку",
+      err_name: "Имя: от 2 до 64 символов — буквы, цифры, пробел, точка или дефис.",
+      err_contact: "Не получилось распознать контакт. Пример: @username, name@example.com, +491701234567.",
+      err_consent: "Нужно согласие на обработку данных.",
+      sent: "Заявка отправлена", sent_text: "Инструкция по оплате придёт в чат с ботом.",
+      via_chat: "Отправка формы доступна, когда приложение открыто кнопкой «✨ Приложение» в меню бота. Сейчас откроем оформление заявки в чате.",
+      no_tariffs: "Тарифы пока не опубликованы.",
+    },
+    en: {
+      nav: ["Home", "About", "Price", "FAQ", "Order"],
+      kicker: "Expert Advisor · MetaTrader 5", cta_order: "Place an order", cta_price: "Price & payment",
+      about: "About", features: "Features", start: "Getting started", price: "Price", payment: "Payment",
+      copy: "Copy", copied: "Copied", how: "How it works",
+      how_text: "You place an order → receive payment instructions → the administrator verifies the payment and confirms the order.",
+      faq: "FAQ", order: "Order", support: "Support", support_btn: "Contact support",
+      f_tariff: "Plan", f_name: "Name", f_contact: "Contact", f_contact_hint: "Telegram @username, e-mail or phone",
+      f_consent: "I consent to data processing", f_privacy: "Data processing terms", f_submit: "Submit order",
+      err_name: "Name: 2–64 characters — letters, digits, spaces, dots or hyphens.",
+      err_contact: "Couldn't recognize the contact. Example: @username, name@example.com, +441234567890.",
+      err_consent: "Consent to data processing is required.",
+      sent: "Order sent", sent_text: "Payment instructions will arrive in the bot chat.",
+      via_chat: "The form can be sent when the app is opened with the “✨ App” button in the bot menu. We'll open ordering in the chat now.",
+      no_tariffs: "Plans are not published yet.",
+    },
+    it: {
+      nav: ["Home", "Prodotto", "Prezzo", "FAQ", "Richiesta"],
+      kicker: "Expert Advisor · MetaTrader 5", cta_order: "Invia richiesta", cta_price: "Prezzo e pagamento",
+      about: "Il prodotto", features: "Funzionalità", start: "Come iniziare", price: "Prezzo", payment: "Pagamento",
+      copy: "Copia", copied: "Copiato", how: "Come funziona",
+      how_text: "Invii una richiesta → ricevi le istruzioni di pagamento → l'amministratore verifica il pagamento e conferma la richiesta.",
+      faq: "Domande frequenti", order: "Richiesta", support: "Assistenza", support_btn: "Scrivi all'assistenza",
+      f_tariff: "Piano", f_name: "Nome", f_contact: "Contatto", f_contact_hint: "@username Telegram, e-mail o telefono",
+      f_consent: "Acconsento al trattamento dei dati", f_privacy: "Condizioni sul trattamento dei dati", f_submit: "Invia richiesta",
+      err_name: "Nome: 2–64 caratteri — lettere, cifre, spazi, punti o trattini.",
+      err_contact: "Contatto non riconosciuto. Esempio: @username, nome@example.com, +393331234567.",
+      err_consent: "È necessario il consenso al trattamento dei dati.",
+      sent: "Richiesta inviata", sent_text: "Le istruzioni di pagamento arriveranno nella chat del bot.",
+      via_chat: "Il modulo si può inviare quando l'app è aperta con il pulsante «✨ App» nel menu del bot. Apriamo ora la richiesta in chat.",
+      no_tariffs: "I piani non sono ancora pubblicati.",
+    },
+    de: {
+      nav: ["Start", "Produkt", "Preis", "FAQ", "Anfrage"],
+      kicker: "Expert Advisor · MetaTrader 5", cta_order: "Anfrage senden", cta_price: "Preis & Zahlung",
+      about: "Über das Produkt", features: "Funktionen", start: "Erste Schritte", price: "Preis", payment: "Zahlung",
+      copy: "Kopieren", copied: "Kopiert", how: "So funktioniert es",
+      how_text: "Sie senden eine Anfrage → erhalten die Zahlungsanweisungen → der Administrator prüft die Zahlung und bestätigt die Anfrage.",
+      faq: "Häufige Fragen", order: "Anfrage", support: "Support", support_btn: "Support kontaktieren",
+      f_tariff: "Tarif", f_name: "Name", f_contact: "Kontakt", f_contact_hint: "Telegram-@username, E-Mail oder Telefon",
+      f_consent: "Ich willige in die Datenverarbeitung ein", f_privacy: "Bedingungen der Datenverarbeitung", f_submit: "Anfrage senden",
+      err_name: "Name: 2–64 Zeichen — Buchstaben, Ziffern, Leerzeichen, Punkte oder Bindestriche.",
+      err_contact: "Kontakt nicht erkannt. Beispiel: @username, name@example.com, +491701234567.",
+      err_consent: "Die Einwilligung zur Datenverarbeitung ist erforderlich.",
+      sent: "Anfrage gesendet", sent_text: "Die Zahlungsanweisungen kommen im Bot-Chat an.",
+      via_chat: "Das Formular kann gesendet werden, wenn die App über die Schaltfläche „✨ App“ im Bot-Menü geöffnet wurde. Wir öffnen jetzt die Anfrage im Chat.",
+      no_tariffs: "Tarife sind noch nicht veröffentlicht.",
+    },
+  };
+  const TABS = [["home", "🏠"], ["about", "📘"], ["price", "💰"], ["faq", "❓"], ["order", "📝"]];
+
+  // ---------- параметры запуска ----------
+  const params = new URLSearchParams(location.search);
+  const fromKeyboard = params.get("mode") === "kb";
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch (e) { /* приватный режим */ } },
+  };
+  const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
+  const pick = (v) => (v && LANGS.includes(v.slice(0, 2)) ? v.slice(0, 2) : null);
+  let lang = pick(params.get("lang")) || pick(store.get("cgb_lang")) || pick(tgUser && tgUser.language_code) || "en";
+  let current = "home";
+  let orderSent = false;
+
+  // Актуальные цены приходят из бота в адресе: ?t=код~цена~валюта,...
+  const urlTariffs = (params.get("t") || "").split(",").filter(Boolean).map((s) => {
+    const [code, price, currency] = s.split("~");
+    return { code, price, currency };
+  });
+  function tariffs() {
+    const base = (C && C.tariffs) || [];
+    if (!urlTariffs.length) return base;
+    return urlTariffs.map((u) => {
+      const known = base.find((b) => b.code === u.code) || { title: {}, description: {} };
+      return Object.assign({}, known, { code: u.code, price: u.price || known.price, currency: u.currency || known.currency });
+    });
+  }
+
+  // ---------- помощники ----------
+  const ui = (k) => UI[lang][k];
+  const txt = (k) => (C && C.texts[lang] && C.texts[lang][k]) || (C && C.texts.ru[k]) || "";
+  const loc = (obj) => (obj && (obj[lang] || obj.ru)) || "";
+  function el(tag, attrs, ...children) {
+    const node = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs || {})) {
+      if (k === "class") node.className = v;
+      else if (k === "text") node.textContent = v;
+      else if (k.startsWith("on")) node.addEventListener(k.slice(2), v);
+      else if (v !== false && v != null) node.setAttribute(k, v === true ? "" : v);
+    }
+    for (const c of children.flat()) if (c != null) node.append(c);
+    return node;
+  }
+  const haptic = (type) => { try { tg && tg.HapticFeedback.impactOccurred(type || "light"); } catch (e) { /* вне Telegram */ } };
+  const title = (text) => el("h2", { class: "section-title gold-text", text });
+  const risk = () => el("div", { class: "risk", text: txt("risk_warning") });
+  function bulletLines(text) {
+    return text.split("\n").map((s) => s.replace(/^\s*(?:[•◆\-]|\d+[.)])\s*/, "").trim()).filter(Boolean);
+  }
+  function openTelegram(url) {
+    if (tg && tg.openTelegramLink) tg.openTelegramLink(url); else window.open(url, "_blank");
+  }
+  function supportHandle() {
+    const m = txt("contacts").match(/@([A-Za-z0-9_]{5,32})/);
+    return m ? m[1] : null;
+  }
+
+  // ---------- экраны ----------
+  function renderHome() {
+    const s = document.getElementById("home");
+    const welcome = txt("welcome").split("\n\n").slice(0, 1).join("");
+    s.replaceChildren(
+      el("div", { class: "hero" },
+        el("img", { class: "emblem", src: "logo.jpg", alt: "" }),
+        el("h1", { class: "gold-text", text: txt("product_name") }),
+        el("p", { class: "kicker", text: ui("kicker") }),
+        el("div", { class: "chips" },
+          ["MetaTrader 5", "XAUUSD · M1", "Breakout", "Stop Loss", "Trailing Stop"].map((c) => el("span", { class: "chip", text: c }))),
+        el("p", { class: "lead", text: welcome })),
+      el("div", { class: "actions" },
+        el("button", { class: "btn btn-gold", text: ui("cta_order"), onclick: () => go("order") }),
+        el("button", { class: "btn", text: ui("cta_price"), onclick: () => go("price") })),
+      title(ui("features")),
+      el("div", { class: "card" }, el("ul", { class: "list" }, bulletLines(txt("features")).map((l) => el("li", { text: l })))),
+      supportCard(),
+      risk());
+  }
+
+  function renderAbout() {
+    const s = document.getElementById("about");
+    s.replaceChildren(
+      title(ui("about")),
+      el("div", { class: "card prose", text: txt("about") }),
+      title(ui("start")),
+      el("div", { class: "card" }, el("ol", { class: "list steps" }, bulletLines(txt("getting_started").split("\n\n")[0]).map((l) => el("li", { text: l })))),
+      el("div", { class: "card note prose", text: txt("getting_started").split("\n\n").slice(1).join("\n\n") }),
+      risk());
+  }
+
+  function renderPrice() {
+    const s = document.getElementById("price");
+    const list = tariffs();
+    const cards = list.length
+      ? list.map((t) => el("div", { class: "card tariff" },
+          el("h3", { text: loc(t.title) || t.code }),
+          el("div", { class: "price gold-text" }, String(t.price), el("small", { text: t.currency })),
+          el("p", { text: loc(t.description) })))
+      : [el("div", { class: "card note", text: ui("no_tariffs") })];
+    const wallets = ((C && C.wallets) || []).map((w) => {
+      const btn = el("button", { class: "copy", text: ui("copy") });
+      btn.addEventListener("click", () => copy(w.address, btn));
+      return el("div", { class: "card wallet" },
+        el("div", { class: "wallet-label", text: w.label }),
+        el("div", { class: "wallet-row" }, el("code", { text: w.address }), btn));
+    });
+    const paymentNotes = txt("payment_info").split("\n\n").filter((p) => !(C.wallets || []).some((w) => p.includes(w.address)));
+    s.replaceChildren(
+      title(ui("price")), ...cards,
+      el("button", { class: "btn btn-gold", text: ui("cta_order"), onclick: () => go("order") }),
+      title(ui("payment")), ...wallets,
+      el("div", { class: "card note prose", text: paymentNotes.join("\n\n") }),
+      title(ui("how")),
+      el("div", { class: "card prose", text: ui("how_text") }),
+      risk());
+  }
+
+  function renderFaq() {
+    const s = document.getElementById("faq");
+    const items = (C && (C.faq[lang] && C.faq[lang].length ? C.faq[lang] : C.faq.ru)) || [];
+    s.replaceChildren(
+      title(ui("faq")),
+      items.map((it) => el("details", { class: "faq" }, el("summary", { text: it.q }), el("div", { text: it.a }))),
+      supportCard(),
+      risk());
+  }
+
+  function supportCard() {
+    const handle = supportHandle();
+    return el("div", { class: "card" },
+      el("div", { class: "wallet-label", text: ui("support") }),
+      el("p", { class: "prose", text: txt("contacts") }),
+      handle ? el("button", { class: "btn", text: ui("support_btn"), onclick: () => openTelegram("https://t.me/" + handle) }) : null);
+  }
+
+  function renderOrder() {
+    const s = document.getElementById("order");
+    if (orderSent) {
+      s.replaceChildren(el("div", { class: "card success" },
+        el("div", { class: "big", text: "✅" }), el("h2", { class: "gold-text", text: ui("sent") }), el("p", { text: ui("sent_text") })));
+      return;
+    }
+    const list = tariffs();
+    const tariffField = el("select", { id: "f-tariff" },
+      list.map((t) => el("option", { value: t.code, text: `${loc(t.title) || t.code} — ${t.price} ${t.currency}` })));
+    const fullName = tgUser ? [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ") : "";
+    const nameInput = el("input", { id: "f-name", autocomplete: "name", maxlength: "64", value: fullName });
+    const contactInput = el("input", { id: "f-contact", autocomplete: "off", maxlength: "128",
+      value: tgUser && tgUser.username ? "@" + tgUser.username : "" });
+    const consent = el("input", { type: "checkbox", id: "f-consent" });
+    const privacy = el("p", { class: "privacy-text", text: txt("privacy"), hidden: true });
+    const errName = el("div", { class: "error" });
+    const errContact = el("div", { class: "error" });
+    const errConsent = el("div", { class: "error" });
+    const submit = el("button", { class: "btn btn-gold", text: ui("f_submit") });
+
+    submit.addEventListener("click", () => {
+      const name = nameInput.value.trim().replace(/\s+/g, " ");
+      const contact = contactInput.value.trim();
+      const okName = /^[\p{L}\p{N}_\s.'@-]{2,64}$/u.test(name);
+      const phone = contact.replace(/[\s()-]/g, "");
+      const okContact = /^@[A-Za-z][A-Za-z0-9_]{4,31}$/.test(contact)
+        || /^[\w.+-]{1,64}@[\w-]{1,63}(\.[\w-]{1,63})+$/.test(contact)
+        || /^\+?\d{10,15}$/.test(phone);
+      errName.textContent = okName ? "" : ui("err_name");
+      errContact.textContent = okContact ? "" : ui("err_contact");
+      errConsent.textContent = consent.checked ? "" : ui("err_consent");
+      if (!okName || !okContact || !consent.checked || !list.length) { haptic("heavy"); return; }
+
+      const payload = JSON.stringify({ action: "order", tariff: tariffField.value, name, contact, consent: true });
+      if (tg && fromKeyboard && tg.sendData) {
+        submit.disabled = true;
+        try { tg.HapticFeedback.notificationOccurred("success"); } catch (e) { /* вне Telegram */ }
+        tg.sendData(payload); // Telegram закроет приложение и передаст заявку боту
+        return;
+      }
+      // Приложение открыто не с клавиатуры: sendData недоступен — продолжаем оформление в чате
+      if (tg && tg.showAlert) {
+        tg.showAlert(ui("via_chat"), () => { openTelegram(`https://t.me/${C.bot_username}?start=order`); tg.close(); });
+      } else {
+        alert(ui("via_chat"));
+      }
+    });
+
+    s.replaceChildren(
+      title(ui("order")),
+      el("div", { class: "card" },
+        el("div", { class: "field" }, el("label", { for: "f-tariff", text: ui("f_tariff") }), tariffField),
+        el("div", { class: "field" }, el("label", { for: "f-name", text: ui("f_name") }), nameInput, errName),
+        el("div", { class: "field" }, el("label", { for: "f-contact", text: ui("f_contact") }), contactInput,
+          el("div", { class: "hint", text: ui("f_contact_hint") }), errContact),
+        el("label", { class: "consent", for: "f-consent" }, consent, el("span", { text: ui("f_consent") })),
+        el("button", { class: "linkish", type: "button", text: ui("f_privacy"), onclick: () => { privacy.hidden = !privacy.hidden; } }),
+        privacy, errConsent, submit),
+      risk());
+  }
+
+  async function copy(text, btn) {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch (e) {
+      const ta = el("textarea", {}, text);
+      document.body.append(ta); ta.select(); document.execCommand("copy"); ta.remove();
+    }
+    haptic("light");
+    btn.textContent = ui("copied"); btn.classList.add("done");
+    setTimeout(() => { btn.textContent = ui("copy"); btn.classList.remove("done"); }, 1600);
+  }
+
+  // ---------- навигация ----------
+  function renderChrome() {
+    document.documentElement.lang = lang;
+    document.getElementById("brand").textContent = txt("product_name") || "CHAIN GOLD BOT EA";
+    document.getElementById("langs").replaceChildren(...LANGS.map((code) => el("button", {
+      text: code.toUpperCase(), "aria-pressed": String(code === lang),
+      onclick: () => { lang = code; store.set("cgb_lang", code); haptic(); renderAll(); },
+    })));
+    document.getElementById("tabs").replaceChildren(...TABS.map(([id, icon], i) => el("button", {
+      "aria-current": id === current ? "page" : false, onclick: () => go(id),
+    }, el("span", { class: "icon", text: icon }), el("span", { text: ui("nav")[i] }))));
+  }
+
+  function renderAll() {
+    renderChrome(); renderHome(); renderAbout(); renderPrice(); renderFaq(); renderOrder();
+  }
+
+  function go(id) {
+    current = id;
+    for (const [sid] of TABS) document.getElementById(sid).hidden = sid !== id;
+    renderChrome();
+    window.scrollTo({ top: 0, behavior: "auto" });
+    haptic();
+    if (tg && tg.BackButton) { id === "home" ? tg.BackButton.hide() : tg.BackButton.show(); }
+  }
+
+  if (tg) {
+    tg.ready();
+    tg.expand();
+    try { tg.setHeaderColor("#050505"); tg.setBackgroundColor("#050505"); tg.setBottomBarColor && tg.setBottomBarColor("#080705"); } catch (e) { /* старые клиенты */ }
+    if (tg.BackButton) tg.BackButton.onClick(() => go("home"));
+  }
+  renderAll();
+})();
+</script>
+</body>
+</html>
