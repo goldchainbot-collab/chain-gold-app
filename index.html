@@ -384,7 +384,7 @@
     const items = (C && (C.faq[lang] && C.faq[lang].length ? C.faq[lang] : C.faq.ru)) || [];
     s.replaceChildren(
       title(ui("faq")),
-      items.map((it) => el("details", { class: "faq" }, el("summary", { text: it.q }), el("div", { text: it.a }))),
+      ...items.map((it) => el("details", { class: "faq" }, el("summary", { text: it.q }), el("div", { text: it.a }))),
       supportCard(),
       risk());
   }
