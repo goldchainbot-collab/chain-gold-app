@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="ru">
+<html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -273,7 +273,8 @@
   };
   const tgUser = (tg && tg.initDataUnsafe && tg.initDataUnsafe.user) || null;
   const pick = (v) => (v && LANGS.includes(v.slice(0, 2)) ? v.slice(0, 2) : null);
-  let lang = pick(params.get("lang")) || pick(store.get("cgb_lang")) || pick(tgUser && tgUser.language_code) || "en";
+  // Приложение всегда открывается на английском; если пользователь сам переключил язык в приложении, запоминаем выбор
+  let lang = pick(store.get("cgb_lang")) || "en";
   let current = "home";
   let orderSent = false;
 
