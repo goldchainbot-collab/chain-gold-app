@@ -331,7 +331,7 @@
         el("h1", { class: "gold-text", text: txt("product_name") }),
         el("p", { class: "kicker", text: ui("kicker") }),
         el("div", { class: "chips" },
-          ["MetaTrader 5", "XAUUSD · M1", "Breakout", "Stop Loss", "Trailing Stop"].map((c) => el("span", { class: "chip", text: c }))),
+          ["MetaTrader 5", "XAUUSD · M1", "BTCUSD · M30", "Breakout", "Stop Loss", "Trailing Stop"].map((c) => el("span", { class: "chip", text: c }))),
         el("p", { class: "lead", text: welcome })),
       el("div", { class: "actions" },
         el("button", { class: "btn btn-gold", text: ui("cta_order"), onclick: () => go("order") }),
